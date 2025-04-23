@@ -39,11 +39,11 @@ public class Constants {
         public static final double RightFrontOffset = 0.162841796875;
         public static final double RightBackOffset = 0.216064453125;
         
-        public static final double kMaxMotorSpeedRPS = 5676/60;
+        public static final double kMaxMotorSpeedRPS = 5676/60; //NEO Motor Free Speed
         public static final double kDrivePositionConversionFactor = 1/ChassisConstants.kDriveGearRatio*ChassisConstants.kWheelDiameter*Math.PI;
         public static final double kDriveVelocityConversionFactor = kDrivePositionConversionFactor/60;
-        public static final double kMotorKv = 476;
-        public static final double kMaxRobotSpeedMPS = kMaxMotorSpeedRPS/ChassisConstants.kDriveGearRatio*ChassisConstants.kWheelDiameter*Math.PI;
+        public static final double kMotorKv = 476; //search from https://docs.revrobotics.com/brushless/neo/v1.1
+        public static final double kMaxRobotSpeedMPS = kMaxMotorSpeedRPS/ChassisConstants.kDriveGearRatio*ChassisConstants.kWheelDiameter*Math.PI; //calculate the maximum velocity of the robot
     }
 
     public class PIDValues {

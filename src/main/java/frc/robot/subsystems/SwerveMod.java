@@ -22,16 +22,17 @@ import frc.robot.Constants.MotorConstants;
 import frc.robot.Constants.PIDValues;
 
 public class SwerveMod {
-    public SparkMax DriveMotor, RotationMotor;
-    public RelativeEncoder DriveEncoder;
-    public CANcoder cancoder;
-    public SparkClosedLoopController DrivePID;
-    public PIDController RotationPID;
-    public CANcoderConfiguration cancoderConfig;
-    public SparkMaxConfig Driveconfig, RotationConfig;
+    public SparkMax DriveMotor, RotationMotor; //Two motors
+    public RelativeEncoder DriveEncoder; // You can get various values from the encoder like velocity, position etc.
+    public CANcoder cancoder; //CTRE CANCoder
+    public SparkClosedLoopController DrivePID; //Driving PID control for smoothen drive
+    public PIDController RotationPID; //Rotation PID for facing tuning
+    public CANcoderConfiguration cancoderConfig; //CANCoder configuration
+    public SparkMaxConfig Driveconfig, RotationConfig; // Motor Configuration
 
 
     public SwerveMod(int DriveMotorID, int RotationMotorID, int CANCoderID, double CANCoderOffset){
+        //initial the item we just defined
         DriveMotor = new SparkMax(DriveMotorID, MotorType.kBrushless);
         RotationMotor = new SparkMax(RotationMotorID, MotorType.kBrushless);
         cancoder = new CANcoder(CANCoderID);
@@ -43,9 +44,12 @@ public class SwerveMod {
         Driveconfig
             .idleMode(IdleMode.kBrake)
             .inverted(false);
+        //closedloop means PID control, not required but you can smoothen your drive when applied.
         Driveconfig.closedLoop
             .pidf(PIDValues.DrivePID[0], PIDValues.DrivePID[1], PIDValues.DrivePID[2], PIDValues.DrivePID[3])
             .outputRange(-1, 1);
+
+        //configure the encoder
         Driveconfig.encoder
             .positionConversionFactor(MotorConstants.kDrivePositionConversionFactor)
             .velocityConversionFactor(MotorConstants.kDriveVelocityConversionFactor);
@@ -61,15 +65,18 @@ public class SwerveMod {
             .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
             .withMagnetOffset(CANCoderOffset);
 
+
+        //apply the motor settings to the motor
         DriveMotor.configure(Driveconfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         RotationMotor.configure(RotationConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        cancoder.getConfigurator().apply(cancoderConfig);
+        cancoder.getConfigurator().apply(cancoderConfig); //applying settings to CANCoder
 
-        DriveEncoder = DriveMotor.getEncoder();
-        RotationPID = new PIDController(PIDValues.RotationPID[0], PIDValues.RotationPID[1], PIDValues.RotationPID[2]);
-        DrivePID = DriveMotor.getClosedLoopController();
+        DriveEncoder = DriveMotor.getEncoder();//get encoder from motor
+        RotationPID = new PIDController(PIDValues.RotationPID[0], PIDValues.RotationPID[1], PIDValues.RotationPID[2]);//Define a PID controller for rotation
+        DrivePID = DriveMotor.getClosedLoopController();// get drive hardware PID controller
     }
 
+    //get the module current state (v, θ) in (m/s, deg)
     public SwerveModuleState getState(){
         return new SwerveModuleState(
             DriveEncoder.getVelocity(),
@@ -77,6 +84,7 @@ public class SwerveMod {
         );
     }
 
+    //get the module position for odometry in (p, θ) of (m, deg)
     public SwerveModulePosition getPosition(){
         return new SwerveModulePosition(
             DriveEncoder.getPosition(),
@@ -84,6 +92,7 @@ public class SwerveMod {
         );
     }
 
+    //set the module state to the desired state
     public void setState(SwerveModuleState state){
         state.optimize(getState().angle);
         DrivePID.setReference(mpsToRPM(state.speedMetersPerSecond), ControlType.kVelocity);
@@ -94,6 +103,7 @@ public class SwerveMod {
         );
     }
 
+    //converter
     public double mpsToRPM(double mps){
         return (mps*60)/(ChassisConstants.kWheelDiameter*Math.PI)*ChassisConstants.kDriveGearRatio;
     }
